@@ -76,7 +76,7 @@ The design is **modular and modern**:
 
 Here's how the entire system is structured and how data flows through it:
 
-![Uni ERP System Architecture Diagram](https://drive.google.com/file/d/1kKrVPVjdg9QHh2vzY8s7wcQmrOKOhm0g/view?usp=drive_link)
+![Uni ERP System Architecture Diagram](uni_erp_architecture.png)
 
 ---
 
