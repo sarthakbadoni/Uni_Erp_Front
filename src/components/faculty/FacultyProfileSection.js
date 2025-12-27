@@ -4,45 +4,89 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
-import { User, Mail, Phone, MapPin, Award, BookOpen, Save } from "lucide-react";
+import { User, Mail, Phone, MapPin, Award, BookOpen, Save, Calendar, Briefcase } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 export default function FacultyProfileSection({ facultyData }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [profileData, setProfileData] = React.useState({
-    name: facultyData.name || "Dr. John Smith",
-    email: facultyData.email || "john.smith@university.edu",
-    phone: facultyData.phone || "+1 (555) 123-4567",
-    department: facultyData.department || "Computer Science",
-    designation: facultyData.designation || "Associate Professor",
-    qualification: facultyData.qualification || "Ph.D. in Computer Science",
-    experience: facultyData.experience || "12 years",
-    bio: "Passionate educator and researcher with expertise in algorithms, data structures, and machine learning. Committed to fostering student growth and innovation.",
-    officeLocation: "Building A, Room 305",
-    officeHours: "Monday & Wednesday, 3:00 PM - 5:00 PM",
+    name: facultyData?.Name || "",
+    officialEmail: facultyData?.OfficialEmail || "",
+    personalEmail: facultyData?.PersonalEmail || "",
+    phone: facultyData?.PhoneNo || "",
+    department: facultyData?.Department || "",
+    designation: facultyData?.Designation || "",
+    qualification: facultyData?.Qualification || "",
+    specialization: facultyData?.Specialization || "",
+    joiningDate: facultyData?.JoiningDate || "",
+    dob: facultyData?.DOB || "",
+    gender: facultyData?.Gender || "",
+    address: facultyData?.Address || "",
+    photoURL: facultyData?.PhotoURL || "",
   });
 
-  const specializations = [
-    "Algorithms",
-    "Data Structures",
-    "Machine Learning",
-    "Artificial Intelligence",
-  ];
+  // Parse specializations (assuming comma-separated or single string)
+  const specializations = profileData.specialization
+    ? profileData.specialization.split(",").map(s => s.trim())
+    : [];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    alert("Profile updated successfully!");
+  const handleSave = async () => {
+    try {
+      const response = await fetch(
+        `http://ec2-65-2-8-148.ap-south-1.compute.amazonaws.com:3000/api/faculty/${facultyData.FacultyID}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Name: profileData.name,
+            OfficialEmail: profileData.officialEmail,
+            PersonalEmail: profileData.personalEmail,
+            PhoneNo: profileData.phone,
+            Designation: profileData.designation,
+            Qualification: profileData.qualification,
+            Specialization: profileData.specialization,
+            JoiningDate: profileData.joiningDate,
+            DOB: profileData.dob,
+            Gender: profileData.gender,
+            Address: profileData.address,
+            PhotoURL: profileData.photoURL,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        alert("Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || "Failed to update profile"}`);
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      alert("Unable to save profile. Please try again.");
+    }
   };
 
   const getInitials = (name) => {
+    if (!name) return "FA";
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Calculate experience from joining date
+  const calculateExperience = (joiningDate) => {
+    if (!joiningDate) return "N/A";
+    const start = new Date(joiningDate);
+    const now = new Date();
+    const years = now.getFullYear() - start.getFullYear();
+    return `${years} year${years !== 1 ? 's' : ''}`;
   };
 
   return (
@@ -71,7 +115,14 @@ export default function FacultyProfileSection({ facultyData }) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <Avatar className="h-24 w-24">
+            <Avatar className="h-24 w-24 ring-4 ring-slate-700">
+              {profileData.photoURL ? (
+                <AvatarImage 
+                  src={profileData.photoURL} 
+                  alt={profileData.name}
+                  className="object-cover"
+                />
+              ) : null}
               <AvatarFallback className="bg-blue-600 text-white text-2xl">
                 {getInitials(profileData.name)}
               </AvatarFallback>
@@ -84,11 +135,17 @@ export default function FacultyProfileSection({ facultyData }) {
                 {profileData.designation}
               </p>
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {specializations.map((spec) => (
-                  <Badge key={spec} variant="secondary" className="bg-slate-600 text-slate-100">
-                    {spec}
+                {specializations.length > 0 ? (
+                  specializations.map((spec) => (
+                    <Badge key={spec} variant="secondary" className="bg-slate-600 text-slate-100">
+                      {spec}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge variant="secondary" className="bg-slate-600 text-slate-100">
+                    {profileData.department}
                   </Badge>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -111,30 +168,45 @@ export default function FacultyProfileSection({ facultyData }) {
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.name}
-                  </p>
+                  <p className="text-slate-300">{profileData.name}</p>
                 )}
               </div>
 
               <div>
                 <Label className="flex items-center gap-2 mb-2 text-slate-300">
                   <Mail className="h-4 w-4" />
-                  Email
+                  Official Email
                 </Label>
                 {isEditing ? (
                   <Input
                     type="email"
-                    value={profileData.email}
+                    value={profileData.officialEmail}
                     onChange={(e) =>
-                      setProfileData({ ...profileData, email: e.target.value })
+                      setProfileData({ ...profileData, officialEmail: e.target.value })
                     }
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.email}
-                  </p>
+                  <p className="text-slate-300">{profileData.officialEmail}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2 text-slate-300">
+                  <Mail className="h-4 w-4" />
+                  Personal Email
+                </Label>
+                {isEditing ? (
+                  <Input
+                    type="email"
+                    value={profileData.personalEmail}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, personalEmail: e.target.value })
+                    }
+                    className="bg-slate-700 border-slate-600 text-slate-100"
+                  />
+                ) : (
+                  <p className="text-slate-300">{profileData.personalEmail}</p>
                 )}
               </div>
 
@@ -153,9 +225,7 @@ export default function FacultyProfileSection({ facultyData }) {
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.phone}
-                  </p>
+                  <p className="text-slate-300">{profileData.phone}</p>
                 )}
               </div>
 
@@ -174,11 +244,31 @@ export default function FacultyProfileSection({ facultyData }) {
                       })
                     }
                     className="bg-slate-700 border-slate-600 text-slate-100"
+                    disabled
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.department}
-                  </p>
+                  <p className="text-slate-300">{profileData.department}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2 text-slate-300">
+                  <Briefcase className="h-4 w-4" />
+                  Designation
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={profileData.designation}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        designation: e.target.value,
+                      })
+                    }
+                    className="bg-slate-700 border-slate-600 text-slate-100"
+                  />
+                ) : (
+                  <p className="text-slate-300">{profileData.designation}</p>
                 )}
               </div>
             </div>
@@ -201,92 +291,122 @@ export default function FacultyProfileSection({ facultyData }) {
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.qualification}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label className="mb-2 text-slate-300">Experience</Label>
-                {isEditing ? (
-                  <Input
-                    value={profileData.experience}
-                    onChange={(e) =>
-                      setProfileData({
-                        ...profileData,
-                        experience: e.target.value,
-                      })
-                    }
-                    className="bg-slate-700 border-slate-600 text-slate-100"
-                  />
-                ) : (
-                  <p className="text-slate-300">
-                    {profileData.experience}
-                  </p>
+                  <p className="text-slate-300">{profileData.qualification}</p>
                 )}
               </div>
 
               <div>
                 <Label className="flex items-center gap-2 mb-2 text-slate-300">
-                  <MapPin className="h-4 w-4" />
-                  Office Location
+                  <Award className="h-4 w-4" />
+                  Specialization
                 </Label>
                 {isEditing ? (
                   <Input
-                    value={profileData.officeLocation}
+                    value={profileData.specialization}
                     onChange={(e) =>
                       setProfileData({
                         ...profileData,
-                        officeLocation: e.target.value,
+                        specialization: e.target.value,
                       })
                     }
+                    placeholder="e.g., Artificial Intelligence, Machine Learning"
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.officeLocation}
-                  </p>
+                  <p className="text-slate-300">{profileData.specialization || "N/A"}</p>
                 )}
               </div>
 
               <div>
-                <Label className="mb-2 text-slate-300">Office Hours</Label>
+                <Label className="flex items-center gap-2 mb-2 text-slate-300">
+                  <Calendar className="h-4 w-4" />
+                  Experience
+                </Label>
+                <p className="text-slate-300">
+                  {calculateExperience(profileData.joiningDate)}
+                </p>
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2 text-slate-300">
+                  <Calendar className="h-4 w-4" />
+                  Joining Date
+                </Label>
                 {isEditing ? (
                   <Input
-                    value={profileData.officeHours}
+                    type="date"
+                    value={profileData.joiningDate}
                     onChange={(e) =>
                       setProfileData({
                         ...profileData,
-                        officeHours: e.target.value,
+                        joiningDate: e.target.value,
                       })
                     }
                     className="bg-slate-700 border-slate-600 text-slate-100"
                   />
                 ) : (
-                  <p className="text-slate-300">
-                    {profileData.officeHours}
-                  </p>
+                  <p className="text-slate-300">{profileData.joiningDate || "N/A"}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2 text-slate-300">
+                  <Calendar className="h-4 w-4" />
+                  Date of Birth
+                </Label>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    value={profileData.dob}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        dob: e.target.value,
+                      })
+                    }
+                    className="bg-slate-700 border-slate-600 text-slate-100"
+                  />
+                ) : (
+                  <p className="text-slate-300">{profileData.dob || "N/A"}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="mb-2 text-slate-300">Gender</Label>
+                {isEditing ? (
+                  <Input
+                    value={profileData.gender}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        gender: e.target.value,
+                      })
+                    }
+                    className="bg-slate-700 border-slate-600 text-slate-100"
+                  />
+                ) : (
+                  <p className="text-slate-300">{profileData.gender || "N/A"}</p>
                 )}
               </div>
             </div>
           </div>
 
           <div>
-            <Label className="mb-2 text-slate-300">Biography</Label>
+            <Label className="flex items-center gap-2 mb-2 text-slate-300">
+              <MapPin className="h-4 w-4" />
+              Address
+            </Label>
             {isEditing ? (
               <Textarea
-                rows={4}
-                value={profileData.bio}
+                rows={3}
+                value={profileData.address}
                 onChange={(e) =>
-                  setProfileData({ ...profileData, bio: e.target.value })
+                  setProfileData({ ...profileData, address: e.target.value })
                 }
                 className="bg-slate-700 border-slate-600 text-slate-100"
               />
             ) : (
-              <p className="text-slate-300">
-                {profileData.bio}
-              </p>
+              <p className="text-slate-300">{profileData.address || "N/A"}</p>
             )}
           </div>
         </CardContent>

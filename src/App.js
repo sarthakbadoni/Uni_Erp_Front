@@ -3,71 +3,72 @@ import LoginPage from "./components/LoginPage";
 import StudentDashboard from "./components/Dashboard";
 import FacultyDashboard from "./components/faculty/FacultyDashboard";
 import AdminDashboard from "./components/admin/AdminDashboard";
+import { Button } from "./components/ui/button";
 import "./styles/appglobals.css";
 
-// Mock data
-const mockStudentData = {
-  name: "Arjun Sharma",
-  studentId: "STU2021001",
-  universityRollNo: "21SCSE1234567",
-  classRollNo: "45",
-  email: "arjun.sharma@university.edu",
-  enrollmentNumber: "EN2021001234",
-  course: "B.Tech",
-  branch: "Computer Science Engineering",
-  specialization: "Artificial Intelligence",
-  semester: "6",
-  photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-  highschoolPercentage: "92%",
-  intermediatePercentage: "88%",
-  fatherName: "Rajesh Sharma",
-  motherName: "Priya Sharma",
-  section: "A",
-};
-
-const mockFacultyData = {
-  userId: "FAC001",
-  name: "Dr. John Smith",
-  email: "john.smith@university.edu",
-  phone: "+1 (555) 123-4567",
-  department: "Computer Science",
-  designation: "Associate Professor",
-  qualification: "Ph.D. in Computer Science",
-  experience: "12 years",
-};
+const API_BASE = "http://ec2-65-2-8-148.ap-south-1.compute.amazonaws.com:3000";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
 
-  const handleLogin = (userData) => {
+  const handleLogin = async (userData) => {
+    let dashboardResult = null;
+    if (userData.type === "student") {
+      dashboardResult = userData.studentData ? userData.studentData : null;
+    } else if (userData.type === "faculty") {
+      try {
+        const res = await fetch(`${API_BASE}/faculty/${userData.id}`);
+        dashboardResult = res.ok ? await res.json() : null;
+      } catch {
+        dashboardResult = null;
+      }
+    } else if (userData.type === "admin") {
+      dashboardResult = {};
+    }
     setUser(userData);
+    setDashboardData(dashboardResult);
   };
 
   const handleLogout = () => {
     setUser(null);
+    setDashboardData(null);
   };
 
   if (!user) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  if (user.type === "student") {
+  if (user.type === "student" && dashboardData && dashboardData.StudentID) {
     return (
-      <StudentDashboard studentData={mockStudentData} onLogout={handleLogout} />
+      <StudentDashboard
+        studentId={dashboardData.StudentID}
+        branch={dashboardData.Branch}
+        studentData={dashboardData}
+        onLogout={handleLogout}
+      />
     );
   }
 
-  if (user.type === "faculty") {
+  if (user.type === "faculty" && dashboardData) {
     return (
-      <FacultyDashboard facultyData={mockFacultyData} onLogout={handleLogout} />
+      <FacultyDashboard
+        facultyData={dashboardData}
+        onLogout={handleLogout}
+      />
     );
   }
 
-  if (user.type === "admin") {
+  if (user.type === "admin" && dashboardData) {
     return (
-      <AdminDashboard onLogout={handleLogout} />
+      <AdminDashboard dashboardData={dashboardData} onLogout={handleLogout} />
     );
   }
-
-  return null;
+  // fallback
+  return (
+    <div className="text-center text-lg text-red-600 my-14">
+      Error: No user details found, please retry login.
+      <Button onClick={handleLogout} className="ml-2">Return to Login</Button>
+    </div>
+  );
 }

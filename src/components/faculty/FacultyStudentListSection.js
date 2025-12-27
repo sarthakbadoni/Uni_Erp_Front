@@ -2,129 +2,107 @@ import React from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "../ui/select";
 import { Search, Mail, Phone, Filter } from "lucide-react";
+
+const API_BASE = "http://ec2-65-2-8-148.ap-south-1.compute.amazonaws.com:3000";
 
 export default function FacultyStudentListSection() {
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedCourse, setSelectedCourse] = React.useState("all");
+  const [courseDetails, setCourseDetails] = React.useState([]);
+  const [selectedCourseID, setSelectedCourseID] = React.useState("all");
   const [selectedBranch, setSelectedBranch] = React.useState("all");
   const [selectedSemester, setSelectedSemester] = React.useState("all");
-  const [selectedSection, setSelectedSection] = React.useState("all");
+  const [typedSection, setTypedSection] = React.useState("");
+  const [students, setStudents] = React.useState([]);
+  const [attendanceMap, setAttendanceMap] = React.useState({});
 
-  const students = [
-    {
-      id: "STU001",
-      name: "Arjun Sharma",
-      rollNo: "21SCSE001",
-      email: "arjun.sharma@university.edu",
-      phone: "+91 98765 43210",
-      course: "B.Tech",
-      branch: "CSE",
-      semester: "6",
-      section: "A",
-      attendance: "92%",
-    },
-    {
-      id: "STU002",
-      name: "Priya Patel",
-      rollNo: "21SCSE002",
-      email: "priya.patel@university.edu",
-      phone: "+91 98765 43211",
-      course: "B.Tech",
-      branch: "CSE",
-      semester: "6",
-      section: "A",
-      attendance: "88%",
-    },
-    {
-      id: "STU003",
-      name: "Rahul Kumar",
-      rollNo: "21SCSE003",
-      email: "rahul.kumar@university.edu",
-      phone: "+91 98765 43212",
-      course: "B.Tech",
-      branch: "CSE",
-      semester: "6",
-      section: "B",
-      attendance: "95%",
-    },
-    {
-      id: "STU004",
-      name: "Sneha Singh",
-      rollNo: "21SCSE004",
-      email: "sneha.singh@university.edu",
-      phone: "+91 98765 43213",
-      course: "B.Tech",
-      branch: "CSE",
-      semester: "6",
-      section: "B",
-      attendance: "90%",
-    },
-    {
-      id: "STU005",
-      name: "Amit Verma",
-      rollNo: "21SECE001",
-      email: "amit.verma@university.edu",
-      phone: "+91 98765 43214",
-      course: "B.Tech",
-      branch: "ECE",
-      semester: "4",
-      section: "A",
-      attendance: "85%",
-    },
-    {
-      id: "STU006",
-      name: "Kavya Reddy",
-      rollNo: "21SECE002",
-      email: "kavya.reddy@university.edu",
-      phone: "+91 98765 43215",
-      course: "B.Tech",
-      branch: "ECE",
-      semester: "4",
-      section: "A",
-      attendance: "91%",
-    },
-    {
-      id: "STU007",
-      name: "Rohan Gupta",
-      rollNo: "22SCSE001",
-      email: "rohan.gupta@university.edu",
-      phone: "+91 98765 43216",
-      course: "B.Tech",
-      branch: "CSE",
-      semester: "4",
-      section: "C",
-      attendance: "87%",
-    },
-    {
-      id: "STU008",
-      name: "Ananya Joshi",
-      rollNo: "21SMEC001",
-      email: "ananya.joshi@university.edu",
-      phone: "+91 98765 43217",
-      course: "B.Tech",
-      branch: "Mechanical",
-      semester: "6",
-      section: "A",
-      attendance: "93%",
-    },
-  ];
+  // Fetch courses (CourseDetails)
+  React.useEffect(() => {
+    fetch(`${API_BASE}/api/coursedetails`)
+      .then((res) => res.json())
+      .then((data) => setCourseDetails(Array.isArray(data) ? data : []))
+      .catch(() => setCourseDetails([]));
+  }, []);
 
-  const filteredStudents = students.filter(
-    (student) => {
-      const matchesSearch = 
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNo.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCourse = selectedCourse === "all" || student.course === selectedCourse;
-      const matchesBranch = selectedBranch === "all" || student.branch === selectedBranch;
-      const matchesSemester = selectedSemester === "all" || student.semester === selectedSemester;
-      const matchesSection = selectedSection === "all" || student.section === selectedSection;
+  // Get current course object (for branches/semesters)
+  const selectedCourseObj =
+    selectedCourseID === "all"
+      ? null
+      : courseDetails.find((c) => c.CourseID === selectedCourseID);
+  const branches = selectedCourseObj ? selectedCourseObj.Branch : [];
+  const semesters = selectedCourseObj
+    ? Array.from(
+        { length: (selectedCourseObj.Duration || 0) * 2 },
+        (_, i) => String(i + 1)
+      )
+    : [];
 
-      return matchesSearch && matchesCourse && matchesBranch && matchesSemester && matchesSection;
+  // Fetch students for given filters
+  React.useEffect(() => {
+    // If All Courses, fetch all students (no filters)
+    if (selectedCourseID === "all") {
+      fetch(`${API_BASE}/api/students`)
+        .then((res) => res.json())
+        .then((data) => setStudents(Array.isArray(data) ? data : []))
+        .catch(() => setStudents([]));
+      return;
     }
-  );
+    // Otherwise, fetch with filters
+    const params = [
+      `courseId=${encodeURIComponent(selectedCourseID)}`,
+      ...(selectedBranch !== "all" ? [`branch=${encodeURIComponent(selectedBranch)}`] : []),
+      ...(selectedSemester !== "all" ? [`semester=${encodeURIComponent(selectedSemester)}`] : []),
+      ...(typedSection.trim() ? [`section=${typedSection.trim()}`] : [])
+    ].join("&");
+    fetch(`${API_BASE}/api/students?${params}`)
+      .then((res) => res.json())
+      .then((data) => setStudents(Array.isArray(data) ? data : []))
+      .catch(() => setStudents([]));
+  }, [selectedCourseID, selectedBranch, selectedSemester, typedSection]);
+
+  // Fetch overall attendance for visible students
+  React.useEffect(() => {
+    if (!students || !students.length) {
+      setAttendanceMap({});
+      return;
+    }
+    const fetchAttendance = async () => {
+      let atMap = {};
+      await Promise.all(
+        students.map(async (student) => {
+          try {
+            const resp = await fetch(`${API_BASE}/api/attendance-overall/${student.StudentID}`);
+            if (resp.ok) {
+              const data = await resp.json();
+              atMap[student.StudentID] = data.overall || "--";
+            } else atMap[student.StudentID] = "--";
+          } catch {
+            atMap[student.StudentID] = "--";
+          }
+        })
+      );
+      setAttendanceMap(atMap);
+    };
+    fetchAttendance();
+  }, [students]);
+
+  // Local search: by name or roll (client side)
+  const filteredStudents =
+    Array.isArray(students)
+      ? students.filter((student) => {
+          const matchesSearch =
+            (student.Name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (student.UniRollNo?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+          return matchesSearch;
+        })
+      : [];
 
   return (
     <div className="space-y-6">
@@ -134,7 +112,10 @@ export default function FacultyStudentListSection() {
             <h2 className="text-xl text-slate-100">Student List</h2>
             <div className="flex items-center gap-2 text-sm text-slate-400">
               <Filter className="h-4 w-4" />
-              <span>{filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}</span>
+              <span>
+                {filteredStudents.length} student
+                {filteredStudents.length !== 1 ? "s" : ""}
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -151,113 +132,124 @@ export default function FacultyStudentListSection() {
             />
           </div>
 
-          {/* Filter Dropdowns */}
+          {/* Filter Controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Course Dropdown */}
             <div className="space-y-2">
               <label className="text-sm text-slate-400">Course</label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+              <Select
+                value={selectedCourseID}
+                onValueChange={(v) => {
+                  setSelectedCourseID(v);
+                  setSelectedBranch("all");
+                  setSelectedSemester("all");
+                  setTypedSection("");
+                }}
+              >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Select Course" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Courses</SelectItem>
-                  <SelectItem value="B.Tech">B.Tech</SelectItem>
-                  <SelectItem value="M.Tech">M.Tech</SelectItem>
-                  <SelectItem value="BCA">BCA</SelectItem>
-                  <SelectItem value="MCA">MCA</SelectItem>
+                  {courseDetails.map((c) => (
+                    <SelectItem key={c.CourseID} value={c.CourseID}>
+                      {c.CourseName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-
+            {/* Branch Dropdown */}
             <div className="space-y-2">
               <label className="text-sm text-slate-400">Branch</label>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <Select
+                value={selectedBranch}
+                onValueChange={setSelectedBranch}
+                disabled={!selectedCourseObj}
+              >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
-                  <SelectItem value="CSE">Computer Science</SelectItem>
-                  <SelectItem value="ECE">Electronics</SelectItem>
-                  <SelectItem value="Mechanical">Mechanical</SelectItem>
-                  <SelectItem value="Civil">Civil</SelectItem>
-                  <SelectItem value="EEE">Electrical</SelectItem>
+                  {branches &&
+                    branches.map((b) => (
+                      <SelectItem key={b} value={b}>
+                        {b}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
-
+            {/* Semester Dropdown */}
             <div className="space-y-2">
               <label className="text-sm text-slate-400">Semester</label>
-              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+              <Select
+                value={selectedSemester}
+                onValueChange={setSelectedSemester}
+                disabled={!selectedCourseObj}
+              >
                 <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
                   <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Semesters</SelectItem>
-                  <SelectItem value="1">Semester 1</SelectItem>
-                  <SelectItem value="2">Semester 2</SelectItem>
-                  <SelectItem value="3">Semester 3</SelectItem>
-                  <SelectItem value="4">Semester 4</SelectItem>
-                  <SelectItem value="5">Semester 5</SelectItem>
-                  <SelectItem value="6">Semester 6</SelectItem>
-                  <SelectItem value="7">Semester 7</SelectItem>
-                  <SelectItem value="8">Semester 8</SelectItem>
+                  {semesters.map((sem) => (
+                    <SelectItem key={sem} value={sem}>
+                      Semester {sem}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-
+            {/* Free-text section (case-insensitive) */}
             <div className="space-y-2">
               <label className="text-sm text-slate-400">Section</label>
-              <Select value={selectedSection} onValueChange={setSelectedSection}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
-                  <SelectValue placeholder="Select Section" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sections</SelectItem>
-                  <SelectItem value="A">Section A</SelectItem>
-                  <SelectItem value="B">Section B</SelectItem>
-                  <SelectItem value="C">Section C</SelectItem>
-                  <SelectItem value="D">Section D</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                className="bg-slate-700 border-slate-600 text-slate-100"
+                type="text"
+                value={typedSection}
+                onChange={(e) => setTypedSection(e.target.value)}
+                placeholder="Type section"
+              />
             </div>
           </div>
 
           <div className="space-y-3">
             {filteredStudents.map((student) => (
-              <Card key={student.id} className="bg-slate-700 border-slate-600">
+              <Card key={student.StudentID} className="bg-slate-700 border-slate-600">
                 <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-slate-100 mb-1 break-words">{student.name}</h3>
-                      <p className="text-sm text-slate-400">Roll No: {student.rollNo}</p>
+                      <h3 className="text-slate-100 mb-1 break-words">{student.Name}</h3>
+                      <p className="text-sm text-slate-400">Roll No: {student.UniRollNo}</p>
                     </div>
                     <Badge
                       className={`shrink-0 ${
-                        parseInt(student.attendance) >= 90
+                        parseInt(attendanceMap[student.StudentID] || "0") >= 90
                           ? "bg-green-600"
-                          : parseInt(student.attendance) >= 75
+                          : parseInt(attendanceMap[student.StudentID] || "0") >= 75
                           ? "bg-yellow-600"
                           : "bg-red-600"
                       }`}
                     >
-                      {student.attendance} Attendance
+                      {attendanceMap[student.StudentID] || "--"}% Attendance
                     </Badge>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-slate-300 min-w-0">
                       <Mail className="h-4 w-4 text-slate-400 shrink-0" />
-                      <span className="break-all">{student.email}</span>
+                      <span className="break-all">{student.OfficialEmail}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-slate-300">
                       <Phone className="h-4 w-4 text-slate-400 shrink-0" />
-                      {student.phone}
+                      {student.StudentPhoneNo}
                     </div>
                     <div className="flex flex-wrap gap-2 sm:gap-4 text-sm text-slate-400 mt-2">
-                      <span>Course: {student.course}</span>
-                      <span>Branch: {student.branch}</span>
-                      <span>Sem: {student.semester}</span>
-                      <span>Sec: {student.section}</span>
+                      <span>Course: {student.CourseName}</span>
+                      <span>Branch: {student.Branch}</span>
+                      <span>Sem: {student.CurrentSem}</span>
+                      <span>Sec: {student.Section}</span>
                     </div>
                   </div>
                 </CardContent>

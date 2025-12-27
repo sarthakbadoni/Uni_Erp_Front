@@ -14,9 +14,38 @@ import FeedbackSection from "./sections/FeedbackSection";
 import ResourceSection from "./sections/ResourceSection";
 import PopupCircular from "./PopupCircular";
 
+// Map backend studentData to UI student object
+function mapStudentData(raw = {}) {
+  return {
+    photo: raw.PhotoURL || raw.photo || "/default-student.jpg",
+    name: raw.Name,
+    studentId: raw.StudentID,
+    universityRollNo: raw.UniRollNo,
+    classRollNo: raw.ClassRollNo,
+    email: raw.OfficialEmail,
+    enrollmentNumber: raw.EnrollmentNo,
+    course: raw.CourseName || raw.CourseName,
+    // --- These are critical ---
+    CourseID: raw.CourseID,                    // <--- FOR SUBJECT API
+    Branch: raw.Branch === "None" ? "" : raw.Branch, // <--- FOR SUBJECT API
+    Semester: raw.CurrentSem,                  // <--- FOR SUBJECT API (should be raw.CurrentSem, not semester/lowercase)
+    Specialization: raw.Specialization,        // <--- FOR SUBJECT API
+    // --- End required ---
+    highschoolPercentage: raw.HighSchool,
+    branch: raw.Branch === "None" ? "" : raw.Branch,
+    semester: raw.CurrentSem,
+    section: raw.Section,
+    intermediatePercentage: raw.Intermediate,
+    fatherName: raw.FatherName,
+    motherName: raw.MotherName
+  };
+}
+
 export default function Dashboard({ studentData, onLogout }) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const mappedStudent = mapStudentData(studentData);
 
   const handleMenuToggle = () => setIsSidebarOpen((prev) => !prev);
   const handleSidebarClose = () => setIsSidebarOpen(false);
@@ -24,11 +53,11 @@ export default function Dashboard({ studentData, onLogout }) {
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard":
-        return <StudentCard student={studentData} />;
+        return <StudentCard student={mappedStudent} />;
       case "academic":
-        return <AcademicSection />;
+        return <AcademicSection student={mappedStudent}/>;
       case "fee":
-        return <FeeSection />;
+        return <FeeSection student={mappedStudent} />;
       case "circular":
         return <CircularSection />;
       case "exam":
@@ -36,7 +65,7 @@ export default function Dashboard({ studentData, onLogout }) {
       case "placement":
         return <PlacementSection />;
       case "hostel":
-        return <HostelSection />;
+        return <HostelSection student={mappedStudent}/>;
       case "grievance":
         return <GrievanceSection />;
       case "feedback":
@@ -52,8 +81,8 @@ export default function Dashboard({ studentData, onLogout }) {
     <div className="bg-slate-900 min-h-screen flex flex-col">
       <PopupCircular userType="student" />
       <Header
-        studentName={studentData?.name}
-        studentPhoto={studentData?.photo}
+        studentName={mappedStudent?.name}
+        studentPhoto={mappedStudent?.photo}
         onLogout={onLogout}
         onMenuClick={handleMenuToggle}
       />
