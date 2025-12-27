@@ -155,7 +155,8 @@ From our testing so far:
 - The finished parts behave more like a real product than a quick hack.  
 
 Demo video link:  
-`https://drive.google.com/file/d/1l0t6YZ99RNTzE2yT_DiJyQyueOVngCpq/view`
+[https://drive.google.com/file/d/1l0t6YZ99RNTzE2yT_DiJyQyueOVngCpq/view](https://drive.google.com/file/d/1l0t6YZ99RNTzE2yT_DiJyQyueOVngCpq/view)
+
 
 ---
 
