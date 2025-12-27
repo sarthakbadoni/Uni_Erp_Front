@@ -11,7 +11,7 @@ Our ERP fits S1 because:
 - It already uses **backend APIs** on AWS EC2, with DynamoDB and S3 as storage.
 - It focuses on **stable routing** (React SPA) and a **production-style** architecture instead of a toy demo.
 
----------------------------------------------------------------
+---
 
 ## Problem statement
 
@@ -29,57 +29,63 @@ students and faculty end up facing:
 
 Instead of making campus life smoother, the ERP often:
 - Causes missed deadlines and half-submitted forms  
-- Creates long queues at admin offices because “the server is down again”  
+- Creates long queues at admin offices because "the server is down again"  
 - Wastes time for staff who have to juggle complaints and manual workarounds  
 
-This project is our attempt to fix that experience instead of just accepting it as “normal”.
+This project is our attempt to fix that experience instead of just accepting it as "normal".
 
----------------------------------------------------------------
+---
 
 ## Why this project exists
 
 If you ask students or faculty about their ERP, you usually get a similar reaction:  
-it’s slow, awkward to use, and it tends to fail exactly when everyone needs it.
+it's slow, awkward to use, and it tends to fail exactly when everyone needs it.
 
 On result days, exam form days, and last fee dates, the pattern repeats:
 - Simple pages suddenly take ages to load.  
 - You get logged out, hit with random errors, or the site just stops responding.  
 - Every action feels like a mini-journey: click → redirect → full reload → wait → maybe error.  
 
-A system that’s supposed to be the digital backbone of a university ends up causing:
+A system that's supposed to be the digital backbone of a university ends up causing:
 - Delayed registrations and messed up timelines  
 - Extra pressure on admin staff who have to deal with the fallout  
-- A general feeling that “the system” is something to fight with, not rely on  
+- A general feeling that "the system" is something to fight with, not rely on  
 
 This project came out of that frustration.  
-We didn’t want yet another fancy screen on top of a slow base – we wanted the base itself to feel solid and modern.
+We didn't want yet another fancy screen on top of a slow base – we wanted the base itself to feel solid and modern.
 
----------------------------------------------------------------
+---
 
 ## What we are building instead
 
-We’re building a **fast, modern, cloud-native university ERP** that’s designed to behave properly under real-world usage, not just in ideal conditions.
+We're building a **fast, modern, cloud-native university ERP** that's designed to behave properly under real-world usage, not just in ideal conditions.
 
 ### Frontend: React SPA with proper routing
 
 - The UI is built as a **single page application** using React.  
 - Navigation between modules (attendance, exams, results, fees, etc.) happens through client-side routing, not full page reloads.  
-- That means no more “click → spinner → redirect → new blank page → maybe content”.  
-- Because the entire layout isn’t reloaded on every action, the app feels much more responsive, even on average networks.
+- That means no more "click → spinner → redirect → new blank page → maybe content".  
+- Because the entire layout isn't reloaded on every action, the app feels much more responsive, even on average networks.
 
 The design is **modular and modern**:
 - Dashboard cards, tables, forms, and panels are implemented as reusable components.  
 - The layout is fully responsive and tested across laptops, tablets, and phones.  
-- The idea is not just to make it “work”, but to make it feel like something students and staff won’t hate opening.  
+- The idea is not just to make it "work", but to make it feel like something students and staff won't hate opening.  
 
----------------------------------------------------------------
+### System Architecture
+
+Here's how the entire system is structured and how data flows through it:
+
+![Uni ERP System Architecture Diagram](https://drive.google.com/file/d/1kKrVPVjdg9QHh2vzY8s7wcQmrOKOhm0g/view?usp=drive_link)
+
+---
 
 ## Backend and infrastructure: built to scale, not to collapse
 
-University usage isn’t flat or predictable.  
+University usage isn't flat or predictable.  
 Most of the time the load is normal, and then suddenly everyone hits the system at once: exam forms opening, results going live, or fee deadlines.
 
-We’ve designed the backend around that kind of usage instead of pretending it doesn’t happen.
+We've designed the backend around that kind of usage instead of pretending it doesn't happen.
 
 ### AWS EC2 for compute
 
@@ -102,16 +108,16 @@ We’ve designed the backend around that kind of usage instead of pretending it 
 In simple terms:  
 Traditional ERPs treat traffic spikes as a headache; we treat them as a base requirement.
 
----------------------------------------------------------------
+---
 
 ## Making it feel like a real app: PWA and UX
 
-We’re not aiming for “just another website with forms”.  
+We're not aiming for "just another website with forms".  
 The goal is to make something that feels like an app you can open quickly and rely on on a daily basis.
 
 ### PWA (Progressive Web App) – planned
 
-We’re working on adding **PWA support** so the ERP can be installed directly on phones and desktops from the browser.
+We're working on adding **PWA support** so the ERP can be installed directly on phones and desktops from the browser.
 
 What this will enable:
 - Installable app with its own icon, splash screen, and standalone window.  
@@ -127,17 +133,17 @@ For students and faculty, that translates to:
 
 - Clean, readable typography and layouts that work well with dense academic data.  
 - Modular sections so universities can turn modules on/off or rearrange things based on their needs.  
-- A focus on avoiding the classic “one giant table with tiny text and ten filters” pattern everywhere.  
+- A focus on avoiding the classic "one giant table with tiny text and ten filters" pattern everywhere.  
 
 The ERP is being built to feel like it was actually designed with real users in mind, not just database fields.
 
----------------------------------------------------------------
+---
 
 ## Current progress (Hackathon – Round 1)
 
-This isn’t just an idea on slides – a good chunk of it is already implemented and running.
+This isn't just an idea on slides – a good chunk of it is already implemented and running.
 
-What’s done so far:
+What's done so far:
 - The main flows showcased in the demo are live and working smoothly.  
 - The site is responsive and has been checked on multiple devices and screen sizes.  
 - Roughly **half of the backend API endpoints** are already implemented and wired into the frontend.  
@@ -151,15 +157,15 @@ From our testing so far:
 Demo video link:  
 `https://drive.google.com/file/d/1l0t6YZ99RNTzE2yT_DiJyQyueOVngCpq/view`
 
----------------------------------------------------------------
+---
 
 ## What is left before the final round
 
-There’s still work to be done, and that’s what we’re focusing on before the last round of the hackathon.
+There's still work to be done, and that's what we're focusing on before the last round of the hackathon.
 
 Planned work:
 - **Make everything fully dynamic**  
-  - Some sections are still hard-coded for this round’s demo.  
+  - Some sections are still hard-coded for this round's demo.  
   - These will be connected fully to backend APIs and the database so all content comes from real data instead of placeholders.  
 - **Complete all major API endpoints**  
   - Finish the remaining core modules: results, attendance, fees, notifications, roles, and more.  
@@ -169,16 +175,16 @@ Planned work:
   - Improve edge cases, error states, loading indicators, and overall feedback.  
   - Push it closer to something that a university could actually deploy, not just something that looks good in a demo.  
 
----------------------------------------------------------------
+---
 
 ## Why this project actually matters
 
-This isn’t a “hello world” ERP or a simple CRUD project done for marks.
+This isn't a "hello world" ERP or a simple CRUD project done for marks.
 
 It tries to solve a real, everyday problem:
 - Universities invest in ERP systems that let them down at the worst possible times.  
 - Students and staff end up working around the system instead of with it.  
-- “Server down” has become a running joke on campus when it should be rare.  
+- "Server down" has become a running joke on campus when it should be rare.  
 
 By combining:
 - A React SPA with fast client-side routing  
@@ -188,6 +194,6 @@ By combining:
 - S3 for reliable file handling  
 - And upcoming PWA support for an app-like experience  
 
-this project aims to build a university ERP that is meant to **stay up**, **stay fast**, and **scale** with real-world usage, instead of collapsing exactly when it’s most needed.
+this project aims to build a university ERP that is meant to **stay up**, **stay fast**, and **scale** with real-world usage, instead of collapsing exactly when it's most needed.
 
-It’s the kind of system we wish our own universities actually had.
+It's the kind of system we wish our own universities actually had.
