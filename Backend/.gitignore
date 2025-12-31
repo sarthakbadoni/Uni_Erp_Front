@@ -1,0 +1,7 @@
+*
+
+!erp/
+!erp/**
+!package.json
+!package-lock.json
+!.gitignore
