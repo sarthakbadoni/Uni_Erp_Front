@@ -1,4 +1,5 @@
-# Fixing the Broken University ERP Experience
+# Next‑Gen University ERP – Fast, Scalable, Student‑First
+
 
 
 ## Problem set
@@ -249,7 +250,11 @@ Planned work:
   - Add the web app manifest, service worker, and proper caching strategies so the system is installable and more resilient on slow or unstable networks.  
 - **Polish and harden the system**  
   - Improve edge cases, error states, loading indicators, and overall feedback.  
-  - Push it closer to something that a university could actually deploy, not just something that looks good in a demo.  
+  - Push it closer to something that a university could actually deploy, not just something that looks good in a demo.
+- **Build the FAQ Helpbot**  
+  - Implement an in‑app FAQ helpbot that can answer common questions (attendance, results, fees, login issues, etc.).  
+  - Connect it to a small FAQ knowledge base and allow it to open the relevant pages inside the ERP so users get both an answer and direct navigation.
+
 
 
 ---
