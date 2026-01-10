@@ -61,7 +61,7 @@ export default function Dashboard({ studentData, onLogout }) {
       case "circular":
         return <CircularSection />;
       case "exam":
-        return <ExamSection />;
+        return <ExamSection student={mappedStudent}/>;
       case "placement":
         return <PlacementSection />;
       case "hostel":
